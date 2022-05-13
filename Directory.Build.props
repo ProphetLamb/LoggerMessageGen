@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+
+    <CodeAnalysisRuleSet>..\..\ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package Info">
+    <Authors>+++YOU</Authors>
+    <Owners>+++YOU</Owners>
+
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Copyright>Copyright (c) +*+YOU 2022</Copyright>
+
+    <PackageProjectUrl>https://github.com/+++YOU/+++PROJECT</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/+++YOU/+++PROJECT.git</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\.editorconfig" Link=".editorconfig" Visible="false" />
+  </ItemGroup>
+
+</Project>

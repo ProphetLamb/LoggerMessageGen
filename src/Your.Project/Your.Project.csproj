@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard20;netstandard21;net48;net50;net60</TargetFrameworks>
+    <RootNamespace>+++Your</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Assembly Info">
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+
+    <Product>+++Your.Project</Product>
+    <PackageId>$(Product)</PackageId>
+    <Title>$(Product)</Title>
+
+    <Description>+++This is about my project</Description>
+    <PackageTags>+++Your;Tags</PackageTags>
+
+    <AssemblyName>$(Product)</AssemblyName>
+    <AssemblyTitle>$(Product) $(TargetFramework)</AssemblyTitle>
+    <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup Condition="!$(DefineConstants.Contains('NET5_0_OR_GREATER'))">
+    <PackageReference Include="System.Memory" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup Condition="!$(DefineConstants.Contains('NET4_5_OR_GREATER'))">
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
+  </ItemGroup>
+</Project>

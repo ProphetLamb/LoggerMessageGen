@@ -1,0 +1,45 @@
+<Project>
+  <Import Project="..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <Features>strict</Features>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package Info">
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(ProjectDir)/RELEASENOTES.md"))</PackageReleaseNotes>
+
+    <PackageIcon>logo.svg</PackageIcon>
+    <PackageIconUrl>https://github.com/+++YOU/+++PROJECT/blob/master/logo.svg</PackageIconUrl>
+
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package Options" Condition="'$(Configuration)'=='Release'">
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb;.xml</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <IncludeSymbols>false</IncludeSymbols>
+
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(ProjectDir)\..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(ProjectDir)\..\..\logo.svg" Pack="true" PackagePath="\" Visible="false" />
+    <Compile Include="$(ProjectDir)\..\AssemblyInfo.cs" Link="AssemblyInfo.cs" Visible="false" />
+    <None Include="$(ProjectDir)\RELEASENOTES.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup Label="Nuget Pack Source Link">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
