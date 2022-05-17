@@ -7,11 +7,11 @@ init:
 environment:
   COVERALLS_SERVICE_NAME: appveyor
   COVERALLS_REPO_TOKEN:
-    secure: +++VALUE # FROM https://coveralls.io/repos/new ENCRYPT WITH https://ci.appveyor.com/tools/encrypt
+    secure: 6idZ+wESP48CKKFLSy6uLzGloNEwsL54y1TcVbPR75NFAgOgo1XBUtFYh2oG3TmR
 
 cache:
-  - '%LocalAppData%\NuGet\Cache -> **\+++PROJECT.*.csproj'
-  - '%LocalAppData%\NuGet\v3-cache  -> **\+++PROJECT.*.csproj'
+  - '%LocalAppData%\NuGet\Cache -> **\LoggerMessage.*.csproj'
+  - '%LocalAppData%\NuGet\v3-cache  -> **\LoggerMessage.*.csproj'
   - C:\ProgramData\chocolatey\bin -> appveyor.yml
   - C:\ProgramData\chocolatey\lib -> appveyor.yml
   - '%UserProfile%\.dotnet\tools -> appveyor.yml'
@@ -24,7 +24,7 @@ configuration:
 
 dotnet_csproj:
   patch: true
-  file: 'src\**\+++PROJECT.*.csproj'
+  file: 'src\**\LoggerMessage.*.csproj'
   version_suffix: "{branch}-{build}"
 
 before_build:
@@ -41,22 +41,22 @@ test_script:
   - ps: ./scripts/test.ps1
 
 artifacts:
-  - path: 'src\**\+++PROJECT.*.nupkg'
+  - path: 'src\**\LoggerMessage.*.nupkg'
 
 deploy:
   - provider: NuGet # Nuget.org
     api_key:
-      secure: +++VALUE # FROM https://www.nuget.org/account/apikeys ENCRYPT WITH https://ci.appveyor.com/tools/encrypt
+      secure: TSNUcxYNb9x2fwwxYxZByKKvrF86dfNF7lQQRqNmoq1q+y7kteHc2nbLCXk+RIpB
     artifact: /.*(\.|\.s)nupkg/
     on:
       branch: /^release/
   - provider: NuGet # Github packages
-    server: https://nuget.pkg.github.com/+++YOUindex.json
+    server: https://nuget.pkg.github.com/ProphetLambindex.json
     artifact: /.*\.nupkg/
     draft: true
     username: ProphetLamb
     api_key:
-      secure: +++VALUE # FROM https://github.com/settings/tokens ENCRYPT WITH https://ci.appveyor.com/tools/encrypt
+      secure: C8xC+nv4MSirvCA8kUoan4sz2B8aFaytWW2m4lrLqXhAnSkOmo6fN90QHiGJoSGI
     on:
       branch: /^release/
 

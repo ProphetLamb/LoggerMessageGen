@@ -12,12 +12,12 @@
     <VersionPrefix>0.1.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
-    <Product>+++Your.Generator</Product>
+    <Product>ProphetLambr.Generator</Product>
     <PackageId>$(Product)</PackageId>
     <Title>$(Product)</Title>
 
-    <Description>+++This is about my source generator</Description>
-    <PackageTags>+++Your;Tags</PackageTags>
+    <Description>Simplifies implementing LoggerMessage extensions with attributes using source generation</Description>
+    <PackageTags>ProphetLambr;Tags</PackageTags>
 
     <AssemblyName>$(Product)</AssemblyName>
     <AssemblyTitle>$(Product) $(TargetFramework)</AssemblyTitle>
@@ -25,9 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-    <!--Dependencies are pretty much bricked, so we manually link required files.-->
-    <Compile Include="$(ProjectDir)\..\External\Class.cs" Link="Class.cs" />
+    <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>

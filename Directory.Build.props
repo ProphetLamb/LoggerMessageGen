@@ -7,16 +7,16 @@
   </PropertyGroup>
 
   <PropertyGroup Label="Package Info">
-    <Authors>+++YOU</Authors>
-    <Owners>+++YOU</Owners>
+    <Authors>ProphetLamb</Authors>
+    <Owners>ProphetLamb</Owners>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Copyright>Copyright (c) +*+YOU 2022</Copyright>
 
-    <PackageProjectUrl>https://github.com/+++YOU/+++PROJECT</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/ProphetLamb/LoggerMessageGen</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/+++YOU/+++PROJECT.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/ProphetLamb/LoggerMessageGen.git</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

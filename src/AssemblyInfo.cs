@@ -1,2 +1,2 @@
 [assembly: System.CLSCompliant(true)]
-namespace +++PROJECT;
+namespace LoggerMessage;

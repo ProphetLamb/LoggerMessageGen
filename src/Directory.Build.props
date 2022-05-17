@@ -10,10 +10,11 @@
 
   <PropertyGroup Label="Package Info">
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(ProjectDir)/RELEASENOTES.md"))</PackageReleaseNotes>
 
     <PackageIcon>logo.svg</PackageIcon>
-    <PackageIconUrl>https://github.com/+++YOU/+++PROJECT/blob/master/logo.svg</PackageIconUrl>
+    <PackageIconUrl>https://github.com/ProphetLamb/LoggerMessageGen/blob/master/logo.svg</PackageIconUrl>
+
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText("$(MSBuildProjectDirectory)/RELEASENOTES.md"))</PackageReleaseNotes>
 
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -32,10 +33,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(ProjectDir)\..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
-    <None Include="$(ProjectDir)\..\..\logo.svg" Pack="true" PackagePath="\" Visible="false" />
-    <Compile Include="$(ProjectDir)\..\AssemblyInfo.cs" Link="AssemblyInfo.cs" Visible="false" />
-    <None Include="$(ProjectDir)\RELEASENOTES.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(ProjectDir)..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(ProjectDir)..\..\logo.svg" Pack="true" PackagePath="\" Visible="false" />
+    <Compile Include="$(ProjectDir)..\AssemblyInfo.cs" Link="AssemblyInfo.cs" Visible="false" />
+    <None Include="$(ProjectDir)RELEASENOTES.md" Pack="true" PackagePath="\" Visible="false" />
   </ItemGroup>
 
   <ItemGroup Label="Nuget Pack Source Link">
