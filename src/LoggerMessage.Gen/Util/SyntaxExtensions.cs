@@ -77,7 +77,7 @@ public static class SyntaxExtensions
     {
         return collection
             .Where(static (m) => m.HasValue)
-            .Select(static (m, _) => m.Value);
+            .Select(static (m, _) => m!.Value);
     }
 
     public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> sequence)

@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-using Microsoft.VisualStudio.Validation;
-
 namespace Rustic;
 
 /// <inheritdoc cref="String"/>
@@ -11,14 +9,14 @@ public static class StringExtensions
 {
     /// <inheritdoc cref="String.IsNullOrEmpty(String)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsEmpty([ValidatedNotNull] this string? s)
+    public static bool IsEmpty(this string? s)
     {
         return String.IsNullOrEmpty(s);
     }
 
     /// <inheritdoc cref="String.IsNullOrWhiteSpace(String)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsWhiteSpace([ValidatedNotNull] this string? s)
+    public static bool IsWhiteSpace(this string? s)
     {
         return String.IsNullOrWhiteSpace(s);
     }

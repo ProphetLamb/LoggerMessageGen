@@ -696,4 +696,16 @@ public class SrcBuilder
     }
 
     #endregion XML
+
+    public static SrcBuilder operator +(SrcBuilder builder, string text)
+    {
+        builder.Append(text);
+        return builder;
+    }
+
+    public static SrcBuilder operator +(SrcBuilder builder, char text)
+    {
+        builder.Append(text);
+        return builder;
+    }
 }
