@@ -13,10 +13,14 @@ namespace LoggerMessage.Gen.Tests;
 [TestFixture]
 public class RunTests
 {
+    [Test]
+    public void TestY()
+    {
 
+    }
 }
 
 [LoggerMessage("LoginFailed", LogLevel.Warning, "Login failed. User = {User:string}, Host = {Host:string}, Attempt = {Attempt:int}.")]
-internal class Constroller
+internal class Controller
 {
 }

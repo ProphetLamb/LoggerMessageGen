@@ -65,19 +65,29 @@ internal readonly struct LoggerMessageContext
 
     public readonly AttributeSyntax Attr;
     public readonly string Name;
+    public readonly string? EventId;
     public readonly string Format;
-    public readonly ImmutableArray<INamedTypeSymbol> Arguments;
+    public readonly ImmutableArray<(string, INamedTypeSymbol)> Arguments;
     public readonly MemberAccessExpressionSyntax? LogLevel;
     public readonly MemberAccessExpressionSyntax? ExtensionScope;
 
-    public LoggerMessageContext(AttributeSyntax attr, string name, string format, ImmutableArray<INamedTypeSymbol> arguments, MemberAccessExpressionSyntax? logLevel, MemberAccessExpressionSyntax? extensionScope)
+    public readonly string DelegateSymbolName;
+    public readonly bool IsLoggerGeneric;
+    public readonly string LoggerSymbol;
+
+    public LoggerMessageContext(AttributeSyntax attr, string name, string format, string? eventId, ImmutableArray<(string, INamedTypeSymbol)> arguments, MemberAccessExpressionSyntax? logLevel, MemberAccessExpressionSyntax? extensionScope)
     {
         Attr = attr;
         Name = name;
+        EventId = eventId;
         Format = format;
         Arguments = arguments;
         LogLevel = logLevel;
         ExtensionScope = extensionScope;
+
+        DelegateSymbolName = $"s_{name}";
+        IsLoggerGeneric = extensionScope is null || extensionScope.Name.Identifier.ValueText == "Generic";
+        LoggerSymbol = IsLoggerGeneric ? "Microsoft.Extensions.Logging.ILogger<T>" : "Microsoft.Extensions.Logging.ILogger";
     }
 
     public static ReadOnlySpan<string> ArgList => new[] {
@@ -94,11 +104,11 @@ internal readonly struct LoggerMessageContext
         {
             return default;
         }
-        string name = "";
+        string? name = null;
         MemberAccessExpressionSyntax? logLevel = null;
-        string format = "";
-        ImmutableArray<INamedTypeSymbol> arguments = default;
-        MemberAccessExpressionSyntax? eventId = null;
+        string? format = null;
+        string? eventId = null;
+        ImmutableArray<(string, INamedTypeSymbol)> arguments = default;
         MemberAccessExpressionSyntax? extensionScope = null;
 
         foreach ((AttributeArgumentSyntax arg, int index) in attr.ArgumentList.Arguments.WithIndex())
@@ -106,66 +116,24 @@ internal readonly struct LoggerMessageContext
             switch (arg.NameColon is null ? index : ArgList.IndexOf(arg.NameColon.Name.Identifier.ValueText))
             {
                 case 0:
-                    {
-                        Debug.Assert(arg.Expression.Kind() == SyntaxKind.StringLiteralExpression);
-                        var expr = (LiteralExpressionSyntax)arg.Expression;
-                        name = expr.Token.ToString();
-                    }
+                    Debug.Assert(arg.Expression.Kind() == SyntaxKind.StringLiteralExpression);
+                    name = ((LiteralExpressionSyntax)arg.Expression).Token.ToString();
                     break;
                 case 1:
-                    {
-                        Debug.Assert(arg.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression);
-                        logLevel = (MemberAccessExpressionSyntax)arg.Expression;
-                    }
+                    Debug.Assert(arg.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression);
+                    logLevel = (MemberAccessExpressionSyntax)arg.Expression;
                     break;
                 case 2:
-                    {
-                        Debug.Assert(arg.Expression.Kind() == SyntaxKind.StringLiteralExpression);
-                        var expr = (LiteralExpressionSyntax)arg.Expression;
-                        var template = expr.Token.ToString();
-                        MatchCollection matches = formatArgumentsRegex.Matches(template);
-
-                        Debug.Assert(matches.Count > 0);
-                        using StrBuilder fmt = new(stackalloc char[template.Length]);
-                        var argsBuilder = ImmutableArray.CreateBuilder<INamedTypeSymbol>(matches.Count);
-                        int templateIdx = 0;
-
-                        foreach (Match match in matches)
-                        {
-                            var alias = match.Groups[1];
-                            var type = match.Groups[2];
-
-                            var types = model.Model.LookupNamespacesAndTypes(model.Node.Identifier.FullSpan.Start, name: alias.Value)
-                                .OfType<INamedTypeSymbol>()
-                                .Where(static (s) => s.CanBeReferencedByName && s.IsType)
-                                .ToImmutableArray();
-                            Debug.Assert(types.Length != 1);
-                            argsBuilder.Add(types[0]);
-
-                            Debug.Assert(match.Index >= templateIdx);
-                            fmt.Append(template.AsSpan(templateIdx, templateIdx - match.Index));
-                            fmt.Append('{');
-                            fmt.Append(alias.Value);
-                            fmt.Append('}');
-                            templateIdx = match.Index + match.Length;
-                        }
-                        arguments = argsBuilder.MoveToImmutable();
-
-                        fmt.Append(template.AsSpan(templateIdx));
-                        format = fmt.ToString();
-                    }
+                    Debug.Assert(arg.Expression.Kind() == SyntaxKind.StringLiteralExpression);
+                    (format, arguments) = ParseFormatSyntax(model, arg);
                     break;
                 case 3:
-                    {
-                        Debug.Assert(arg.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression);
-                        eventId = (MemberAccessExpressionSyntax)arg.Expression;
-                    }
+                    Debug.Assert(arg.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression);
+                    eventId = ((LiteralExpressionSyntax)arg.Expression).Token.ToString();
                     break;
                 case 4:
-                    {
-                        Debug.Assert(arg.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression);
-                        extensionScope = (MemberAccessExpressionSyntax)arg.Expression;
-                    }
+                    Debug.Assert(arg.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression);
+                    extensionScope = (MemberAccessExpressionSyntax)arg.Expression;
                     break;
                 default:
                     throw null!;
@@ -174,6 +142,43 @@ internal readonly struct LoggerMessageContext
 
         Debug.Assert(!name.IsEmpty());
         Debug.Assert(!format.IsEmpty());
-        return new LoggerMessageContext(attr, name, format, arguments, logLevel, extensionScope);
+        return new LoggerMessageContext(attr, name!, format!, eventId, arguments, logLevel, extensionScope);
+    }
+
+    private static (string, ImmutableArray<(string, INamedTypeSymbol)>) ParseFormatSyntax(SynModel<BaseTypeDeclarationSyntax> model, AttributeArgumentSyntax arg)
+    {
+        var expr = (LiteralExpressionSyntax)arg.Expression;
+        var template = expr.Token.ToString();
+        MatchCollection matches = formatArgumentsRegex.Matches(template);
+
+        Debug.Assert(matches.Count > 0);
+        StrBuilder fmt = new(stackalloc char[template.Length]);
+        var argsBuilder = ImmutableArray.CreateBuilder<(string, INamedTypeSymbol)>(matches.Count);
+        int templateIdx = 0;
+
+        foreach (Match match in matches)
+        {
+            Group alias = match.Groups[1];
+            Group type = match.Groups[2];
+
+            var types = model.Model.LookupNamespacesAndTypes(model.Node.Identifier.FullSpan.Start, name: alias.Value)
+                .OfType<INamedTypeSymbol>()
+                .Where(static (s) => s.CanBeReferencedByName && s.IsType)
+                .ToImmutableArray();
+            Debug.Assert(types.Length != 1);
+            argsBuilder.Add((alias.Value, types[0]));
+
+            Debug.Assert(match.Index >= templateIdx);
+            fmt.Append(template.AsSpan(templateIdx, templateIdx - match.Index));
+            fmt.Append('{');
+            fmt.Append(alias.Value);
+            fmt.Append('}');
+            templateIdx = match.Index + match.Length;
+        }
+        var arguments = argsBuilder.MoveToImmutable();
+
+        fmt.Append(template.AsSpan(templateIdx));
+        var format = fmt.ToString();
+        return (format, arguments);
     }
 }

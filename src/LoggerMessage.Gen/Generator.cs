@@ -34,26 +34,21 @@ public class Generator : IIncrementalGenerator
             return;
         }
 
-        foreach (var ctx in declsCtx)
+        foreach (var (ctx, idx) in declsCtx.WithIndex())
         {
             SrcBuilder text = new(2048);
-            Generate(text, in ctx);
+            Generate(text, in ctx, idx);
             context.AddSource($"{ctx.Symbol}LoggerMessages.g.cs", SourceText.From(text.ToString(), Encoding.UTF8));
         }
     }
 
-    private static void Generate(SrcBuilder text, in GenContext ctx)
+    private static void Generate(SrcBuilder text, in GenContext ctx, int idx)
     {
         LoggerMessageGen gen = new(text);
 
         using (text.NullableEnable())
         {
             text.Stmt("using System;")
-                .Stmt("using System.ComponentModel;")
-                .Stmt("using System.Collections.Generic;")
-                .Stmt("using System.Runtime.CompilerServices;")
-                .Stmt("using System.Runtime.Serialization;")
-                .Stmt("using System.Runtime.InteropServices;")
                 .NL()
                 .Stmt("using LoggerMessage.Gen;")
                 .NL()
@@ -61,7 +56,7 @@ public class Generator : IIncrementalGenerator
 
             using (text.Decl($"namespace {ctx.Namespace}"))
             {
-                gen.Generate(in ctx);
+                gen.Generate(in ctx, idx);
             }
         }
     }
@@ -146,24 +141,69 @@ internal readonly struct LoggerMessageGen
         Text = text;
     }
 
-    public void Generate(in GenContext ctx)
+    public void Generate(in GenContext ctx, int genIdx)
     {
         using (Text.Decl($"{ctx.Modifiers} static class {ctx.Symbol}LoggerMessages"))
         {
-            foreach (var attr in ctx.LoggerMessages)
+            foreach (var (attr, attrIdx) in ctx.LoggerMessages.WithIndex())
             {
-                Define(in ctx, attr);
+                int inferred = InferEventId(in ctx, genIdx, attrIdx);
+                Define(in attr, inferred);
+                Extension(in attr);
             }
         }
     }
 
-    private string Define(in GenContext ctx, in LoggerMessageContext attr)
+    private void Define(in LoggerMessageContext attr, int inferredEventId)
     {
-        return "";
+        string eventId = attr.EventId ?? inferredEventId.ToString();
+
+        Text.AppendIndent($"private static Func<{attr.LoggerSymbol}, ");
+        foreach (var (_, argT) in attr.Arguments)
+        {
+            _ = Text + argT.Name + ", ";
+        }
+        Text.Append($"System.Exception?> {attr.DelegateSymbolName} = Microsoft.Extensions.Logging.LoggerMessage.Define({attr.LogLevel}, {eventId}, {attr.Format});")
+        .NL();
     }
 
-    private void Extension(in GenContext ctx, in LoggerMessageContext attr)
+    private int InferEventId(in GenContext ctx, int genIdx, int attrIdx)
     {
+        var attr = ctx.LoggerMessages[attrIdx];
+        return (GetLogLevel(attr.LogLevel) & 0xF) << 28
+            | (genIdx & 0xFFFF) << 12
+            | (attrIdx & 0xFFF);
+    }
 
+    private int GetLogLevel(MemberAccessExpressionSyntax? expr)
+    {
+        return expr?.Name.Identifier.ValueText switch
+        {
+            "Trace" => 0,
+            "Debug" => 1,
+            "Information" => 2,
+            "Warning" => 3,
+            "Error" => 4,
+            "Critical" => 5,
+            _ => 6,
+        };
+    }
+
+    private void Extension(in LoggerMessageContext attr)
+    {
+        Text.AppendIndent($"public static {attr.LoggerSymbol} {attr.Name}(this {attr.LoggerSymbol} logger, ");
+        foreach (var (alias, argT) in attr.Arguments)
+        {
+            _ = Text + argT.ToDisplayString() + ' ' + alias + ", ";
+        }
+        using (Text.Append("System.Exception? ex)").NL().Block())
+        {
+            Text.AppendIndent($"{attr.DelegateSymbolName}(logger, ");
+            foreach (var (alias, _) in attr.Arguments)
+            {
+                _ = Text + alias + ", ";
+            }
+            _ = Text + "ex)";
+        }
     }
 }
